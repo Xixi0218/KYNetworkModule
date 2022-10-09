@@ -8,7 +8,7 @@
 import Foundation
 
 final class KYDataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDelegate, @unchecked Sendable {
-    private var handlers = [URLSessionTask: KYTaskHandler]()
+    private var handlers = TaskHandlersDictionary()
 
     var userSessionDelegate: URLSessionDelegate? {
         didSet {
@@ -236,6 +236,8 @@ private final class KYDownloadTaskHandler: KYTaskHandler {
 
 // MARK: Helpers
 
+protocol OptionalDecoding {}
+
 struct DataLoaderError: Error {
     let task: URLSessionTask
     let error: Error
@@ -257,6 +259,8 @@ extension OperationQueue {
     }
 }
 
+extension Optional: OptionalDecoding {}
+
 func encode(_ value: Encodable, using encoder: JSONEncoder) async throws -> Data? {
     if let data = value as? Data {
         return data
@@ -270,7 +274,9 @@ func encode(_ value: Encodable, using encoder: JSONEncoder) async throws -> Data
 }
 
 func decode<T: Decodable>(_ data: Data, using decoder: JSONDecoder) async throws -> T {
-    if T.self == Data.self {
+    if data.isEmpty, T.self is OptionalDecoding.Type {
+        return Optional<Decodable>.none as! T
+    } else if T.self == Data.self {
         return data as! T
     } else if T.self == String.self {
         guard let string = String(data: data, encoding: .utf8) else {
@@ -281,5 +287,28 @@ func decode<T: Decodable>(_ data: Data, using decoder: JSONDecoder) async throws
         return try await Task.detached {
             try decoder.decode(T.self, from: data)
         }.value
+    }
+}
+
+/*
+ 在 iOS 16 中，现在有一个委托方法 (`didCreateTask`)
+ 在会话的委托队列之外调用，这意味着访问
+ 需要同步。
+ */
+private final class TaskHandlersDictionary {
+    private let lock = NSLock()
+    private var handlers = [URLSessionTask: KYTaskHandler]()
+
+    subscript(task: URLSessionTask) -> KYTaskHandler? {
+        get {
+            lock.lock()
+            defer { lock.unlock() }
+            return handlers[task]
+        }
+        set {
+            lock.lock()
+            defer { lock.unlock() }
+            handlers[task] = newValue
+        }
     }
 }

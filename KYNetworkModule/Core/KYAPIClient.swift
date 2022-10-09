@@ -110,7 +110,7 @@ public actor KYAPIClient {
         delegate: URLSessionDataDelegate? = nil
     ) async throws -> KYResponse<Data> {
         let request = try await makeURLRequest(for: request)
-        return try await performWithRetries {
+        return try await performRequest {
             var request = request
             try await self.delegate.client(self, willSendRequest: &request)
             let task = session.dataTask(with: request)
@@ -208,7 +208,7 @@ public actor KYAPIClient {
         delegate: URLSessionTaskDelegate?
     ) async throws -> KYResponse<Data> {
         let request = try await makeURLRequest(for: request)
-        return try await performWithRetries {
+        return try await performRequest {
             var request = request
             try await self.delegate.client(self, willSendRequest: &request)
             let task = session.uploadTask(with: request, fromFile: fileURL)
@@ -270,7 +270,7 @@ public actor KYAPIClient {
 
     // MARK: Helpers
 
-    private func performWithRetries<T>(
+    private func performRequest<T>(
         attempts: Int = 1,
         send: () async throws -> T
     ) async throws -> T {
@@ -283,7 +283,7 @@ public actor KYAPIClient {
             guard try await delegate.client(self, shouldRetry: error.task, error: error.error, attempts: attempts) else {
                 throw error.error
             }
-            return try await performWithRetries(attempts: attempts + 1, send: send)
+            return try await performRequest(attempts: attempts + 1, send: send)
         }
     }
 
