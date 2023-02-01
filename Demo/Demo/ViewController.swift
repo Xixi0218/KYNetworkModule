@@ -1,11 +1,12 @@
 //
 //  ViewController.swift
-//  KYNetworkModule
+//  Demo
 //
-//  Created by keyon on 2022/9/4.
+//  Created by Keyon on 2023/2/1.
 //
 
 import UIKit
+import KYNetworkModule
 
 extension String {
     var URLEscaped: String {
@@ -40,7 +41,7 @@ struct JYGitHubSearchItemModel: Codable {
 class ViewController: UIViewController {
 
     private lazy var apiClient: KYAPIClient = {
-        let apiClient = KYAPIClient(configuration: KYAPIClient.Configuration.init(baseURL: URL(string: "https://api.github.com"), sessionConfiguration: .default, delegate: JYAPIClientDelegate()))
+        let apiClient = KYAPIClient(configuration: KYAPIClient.Configuration.init(baseURL: URL(string: "https://api.github.com"), sessionConfiguration: .default, delegate: APIClientDelegate()))
         return apiClient
     }()
 
@@ -49,7 +50,7 @@ class ViewController: UIViewController {
         Task.detached {
             do {
                 let model = try await self.apiClient.send(KYRequest<JYGitHubSearchModel>(method: .get, url: "/search/repositories", query: [("q", "RxSwift".URLEscaped)]))
-                debugPrint(model.value) 
+                debugPrint(model.value)
             } catch {
                 debugPrint(error)
             }

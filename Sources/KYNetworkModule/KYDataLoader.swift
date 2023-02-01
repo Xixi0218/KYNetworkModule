@@ -29,7 +29,7 @@ final class KYDataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDe
     }()
 
     func startDataTask(_ task: URLSessionDataTask, session: URLSession, delegate: URLSessionDataDelegate?) async throws -> KYResponse<Data> {
-        try await withTaskCancellationHandler { task.cancel() } operation: {
+        try await withTaskCancellationHandler {
             try await withUnsafeThrowingContinuation { continuation in
                 session.delegateQueue.addOperation {
                     let handler = KYDataTaskHandler(delegate: delegate)
@@ -38,11 +38,13 @@ final class KYDataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDe
                 }
                 task.resume()
             }
+        } onCancel: {
+            task.cancel()
         }
     }
 
     func startDownloadTask(_ task: URLSessionDownloadTask, session: URLSession, delegate: URLSessionDownloadDelegate?) async throws -> KYResponse<URL> {
-        try await withTaskCancellationHandler { task.cancel() } operation: {
+        try await withTaskCancellationHandler {
             try await withUnsafeThrowingContinuation { continuation in
                 session.delegateQueue.addOperation {
                     let handler = KYDownloadTaskHandler(delegate: delegate)
@@ -51,11 +53,13 @@ final class KYDataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDe
                 }
                 task.resume()
             }
+        } onCancel: {
+            task.cancel()
         }
     }
 
     func startUploadTask(_ task: URLSessionUploadTask, session: URLSession, delegate: URLSessionTaskDelegate?) async throws -> KYResponse<Data> {
-        try await withTaskCancellationHandler { task.cancel() } operation: {
+        try await withTaskCancellationHandler {
             try await withUnsafeThrowingContinuation { continuation in
                 session.delegateQueue.addOperation {
                     let handler = KYDataTaskHandler(delegate: delegate)
@@ -64,6 +68,8 @@ final class KYDataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDe
                 }
                 task.resume()
             }
+        } onCancel: {
+            task.cancel()
         }
     }
 

@@ -1,13 +1,14 @@
 //
-//  JYAPIClientDelegate.swift
-//  KYNetworkModule
+//  APIClientDelegate.swift
+//  Demo
 //
-//  Created by keyon on 2022/9/4.
+//  Created by Keyon on 2023/2/1.
 //
 
 import Foundation
+import KYNetworkModule
 
-class JYAPIClientDelegate: KYAPIClientDelegate {
+class APIClientDelegate: KYAPIClientDelegate {
     func client(_ client: KYAPIClient, willSendRequest request: inout URLRequest) async throws {
         debugPrint(request.url ?? "")
     }
@@ -16,7 +17,5 @@ class JYAPIClientDelegate: KYAPIClientDelegate {
         guard (200..<300).contains(response.statusCode) else {
             throw KYAPIError.unacceptableStatusCode(response.statusCode)
         }
-//        let string = String(data: data, encoding: .utf8)
-//        debugPrint(string ?? "")
     }
 }
