@@ -23,9 +23,12 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "KYNetworkModule",
-            dependencies: []),
+            dependencies: [],
+            path: "Sources"),
         .testTarget(
             name: "KYNetworkModuleTests",
-            dependencies: ["KYNetworkModule"]),
-    ]
+            dependencies: ["KYNetworkModule"],
+            path: "Tests"),
+    ],
+    swiftLanguageVersions: [.v5]
 )
